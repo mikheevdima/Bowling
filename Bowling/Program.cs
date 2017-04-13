@@ -12,7 +12,7 @@ namespace Bowling
         {
             Game game = new Game();
             game.Start();
-            
+
             game.AddTable();
 
             Console.ReadKey();
