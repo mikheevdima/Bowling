@@ -31,5 +31,14 @@ namespace Bowling
             table.AddRow(_thirdRow);
             table.WriteToConsole();
         }
+
+        private int NumOfPins(int border)
+        {
+            var random = new Random();
+            var temp = random.Next(border);
+            return temp;
+        }
+
+
     }
 }
