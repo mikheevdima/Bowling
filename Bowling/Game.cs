@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 using ConsoleUtilities;
@@ -12,6 +13,7 @@ namespace Bowling
         public string Name { get; set; }
         public int FirstRoll { get; set; }
         public int SecondRoll { get; set; }
+        public int ThirdRoll { get; set; }
         public bool Strike { get; set; }
         public bool Spair { get; set; }
 
@@ -70,11 +72,38 @@ namespace Bowling
             }
         }
 
-        public void SecondRollText(int numofpins)
+        public void SecondRollText(int numofpins1Roll, int numofpins2Roll)
+        {
+            var sum = numofpins1Roll + numofpins2Roll;
+            if (sum == 10)
+            {
+                Console.WriteLine("Roll 2... Spare! Way to go!!");
+            }
+            else
+            {
+                if (numofpins2Roll < 5)
+                {
+                    if (numofpins2Roll == 0)
+                    {
+                        Console.WriteLine("Roll 2... no pins down! You need more practice!");
+                    }
+                    else
+                    {
+                        Console.WriteLine("Roll 2... {0} pin down! Be more accurate!", numofpins2Roll);
+                    }
+                }
+                else
+                {
+                    Console.WriteLine("Roll 2... {0} pins down! Very nice!", numofpins2Roll);
+                }
+            }
+        }
+
+        public void ThirdRollText(int numofpins)
         {
             if (numofpins == 10)
             {
-                Console.WriteLine("Roll 2... Spare! Way to go!!");
+                Console.WriteLine("Roll 3... Strike!Excellent!");
             }
             else
             {
@@ -82,16 +111,16 @@ namespace Bowling
                 {
                     if (numofpins == 0)
                     {
-                        Console.WriteLine("Roll 2... no pins down! You need more practice!");
+                        Console.WriteLine("Roll 3... no pins down! You need more practice!");
                     }
                     else
                     {
-                        Console.WriteLine("Roll 2... {0} pin down! Be more accurate!", numofpins);
+                        Console.WriteLine("Roll 3... {0} pin down! Be more accurate!", numofpins);
                     }
                 }
                 else
                 {
-                    Console.WriteLine("Roll 2... {0} pins down! Very nice!", numofpins);
+                    Console.WriteLine("Roll 3... {0} pins down! Very nice!", numofpins);
                 }
             }
         }
@@ -113,29 +142,43 @@ namespace Bowling
 
         public void AfterRollTableText(int numofpins1Roll, int numofpins2Roll, int numofframe)
         {
-            _secondRow[numofframe] = numofpins1Roll + "-" + numofpins2Roll;
+            var sum = numofpins1Roll + numofpins2Roll;
+            if (sum == 10)
+            {
+                IfSpareChangeRolls(numofframe, numofpins1Roll);
+            }
+            else
+            {
+                _secondRow[numofframe] = numofpins1Roll + "-" + numofpins2Roll;
+            }
             Console.Clear();
             AddTable();
             FirstRollText(numofpins1Roll);
-            SecondRollText(numofpins2Roll);
+            SecondRollText(numofpins1Roll, numofpins2Roll);
         }
 
         public void IfStrike(int numofframe)
         {
             _secondRow[numofframe] = "X";
+
             var previousRoll = _secondRow[numofframe - 1];
 
-            if (numofframe == 1)
+            if (numofframe == 1) // рассматриваем случай первого хода
             {
                 _thirdRow[numofframe] = "10";
             }
             else
             {
                 var previousScore = Convert.ToInt32(_thirdRow[numofframe - 1]);
+                if (Spair)
+                {
+                    _thirdRow[numofframe - 1] = (previousScore + 10).ToString();
+                    Spair = false;
+                }
                 _thirdRow[numofframe] = (previousScore + 10).ToString();
             }
 
-            if (previousRoll == "X")
+            if (previousRoll == "X") // если прошлый бросок был страйком
             {
                 var previousScore = Convert.ToInt32(_thirdRow[numofframe - 1]);
                 _thirdRow[numofframe - 1] = (previousScore + 10).ToString();
@@ -143,7 +186,7 @@ namespace Bowling
                 _thirdRow[numofframe] = (previousScore + 10).ToString();
             }
 
-            if (previousRoll == "X" && _secondRow[numofframe - 2] == "X")
+            if (previousRoll == "X" && _secondRow[numofframe - 2] == "X") // если прошлые 2 броска были страйками
             {
                 var previousScore = Convert.ToInt32(_thirdRow[numofframe - 1]);
                 var prepreviousScore = Convert.ToInt32(_thirdRow[numofframe - 2]);
@@ -158,15 +201,24 @@ namespace Bowling
             Console.WriteLine("Roll 1... Strike!Excellent!");
         }
 
+        private void IfSpareChangeRolls(int numofframe, int numofpins1Roll)
+        {
+            _secondRow[numofframe] = numofpins1Roll + "/";
+        }
+
+        public void IfSpare(int numofpins1Roll, int numofpins2Roll)
+        {
+            Spair = false;
+            var sum = numofpins1Roll + numofpins2Roll;
+            if (sum == 10)
+            {
+                Spair = true;
+            }
+        }
+
         public void CalculatePoints(int numofpins1Roll, int numofpins2Roll, int numofframe)
         {
             int sum = numofpins1Roll + numofpins2Roll;
-
-            if (Strike)
-            {
-                var previousframe = Convert.ToInt32(_thirdRow[numofframe - 1]);
-                _thirdRow[numofframe - 1] = (previousframe + sum).ToString();
-            }
 
             if (numofframe == 1)
             {
@@ -175,12 +227,63 @@ namespace Bowling
             else
             {
                 var previousframe = Convert.ToInt32(_thirdRow[numofframe - 1]);
-                sum = (numofpins1Roll + numofpins2Roll);
+
+                if (Strike)
+                {
+                    _thirdRow[numofframe - 1] = (previousframe + sum).ToString();
+                    Strike = false;
+                }
+
+                if (Spair)
+                {
+                    _thirdRow[numofframe - 1] = (previousframe + numofpins1Roll).ToString();
+                    Spair = false;
+                }
+                previousframe = Convert.ToInt32(_thirdRow[numofframe - 1]);
                 _thirdRow[numofframe] = (previousframe + sum).ToString();
             }
 
             Console.Clear();
             AddTable();
+        }
+
+        public void IfSpare10Frame(int numofpins1Roll, int numofpins2Roll)
+        {
+            if (Spair)
+            {
+                Console.Clear();
+                var previousRoll = _secondRow[10];
+                _secondRow[10] = _secondRow[10] + "-...";
+                AddTable();
+                FirstRollText(numofpins1Roll);
+                SecondRollText(numofpins1Roll, numofpins2Roll);
+
+
+                Console.ReadKey();
+
+
+                ThirdRoll = NumOfPins(11);
+                ThirdRollText(ThirdRoll);
+                Console.ReadKey();
+
+                Console.Clear();
+                _secondRow[10] = previousRoll + ThirdRoll;
+                AddTable();
+                FirstRollText(numofpins1Roll);
+                SecondRollText(numofpins1Roll, numofpins2Roll);
+                ThirdRollText(ThirdRoll);
+                Console.ReadKey();
+
+                var previousScore = Convert.ToInt32(_thirdRow[10]);
+                _thirdRow[10] = (previousScore + ThirdRoll).ToString();
+                Console.Clear();
+                AddTable();
+            }
+        }
+
+        public void Congrats()
+        {
+            Console.WriteLine("Congratulations, {0}! Your final score: {1} points!", Name, _thirdRow[10]);
         }
     }
 }

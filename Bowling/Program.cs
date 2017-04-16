@@ -10,12 +10,11 @@ namespace Bowling
     {
         static void Main(string[] args)
         {
-            Game game = new Game();
+            var game = new Game();
             game.Start();
-            for (int i = 1; i < 11; i++)
+            for (var i = 1; i < 11; i++)
             {
-                //game.FirstRoll = game.NumOfPins(11);
-                game.FirstRoll = 10;
+                game.FirstRoll = game.NumOfPins(11);
                 game.SecondRoll = game.NumOfPins(11 - game.FirstRoll);
 
                 game.FirstRollTabletext(game.FirstRoll, i);
@@ -28,29 +27,34 @@ namespace Bowling
 
                     game.Strike = true;
                 }
-
                 else
                 {
                     game.FirstRollText(game.FirstRoll);
                     Console.ReadKey();
-
                     game.SecondRollTabletext(game.FirstRoll, i);
                     Console.ReadKey();
-                    game.SecondRollText(game.SecondRoll);
+                    game.SecondRollText(game.FirstRoll, game.SecondRoll);
                     Console.ReadKey();
 
                     game.AfterRollTableText(game.FirstRoll, game.SecondRoll, i);
+
                     Console.ReadKey();
 
                     game.CalculatePoints(game.FirstRoll, game.SecondRoll, i);
-                    Console.ReadKey();
+                    if (i != 10)
+                    {
+                        Console.ReadKey();
+                    }
 
+
+                    game.IfSpare(game.FirstRoll, game.SecondRoll);
                     game.Strike = false;
                 }
                 
             }
-
-
+            game.IfSpare10Frame(game.FirstRoll, game.SecondRoll);
+            
+            game.Congrats();
             Console.ReadKey();
         }
     }
